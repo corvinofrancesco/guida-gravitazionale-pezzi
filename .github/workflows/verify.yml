@@ -1,0 +1,52 @@
+name: verify
+
+# Controllo automatico a ogni PR: rigenera le sagome, le auto-verifica e produce
+# le anteprime PNG per la revisione umana. Nessun merge su main senza PR + review.
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Genera e auto-verifica le sagome
+        # Il generatore fallisce (exit != 0) se un tracciato non e' valido,
+        # se una parte esce dall'A4 o se due parti si sovrappongono.
+        run: python3 genera_svg.py
+
+      - name: Installa il rasterizzatore SVG
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+
+      - name: Crea le anteprime PNG (per la revisione umana)
+        run: |
+          mkdir -p anteprime
+          for f in svg/foglio-*.svg; do
+            rsvg-convert -d 120 -p 120 "$f" -o "anteprime/$(basename "${f%.svg}").png"
+          done
+
+      - name: Carica gli SVG generati
+        uses: actions/upload-artifact@v4
+        with:
+          name: sagome-svg
+          path: svg/
+
+      - name: Carica le anteprime PNG
+        uses: actions/upload-artifact@v4
+        with:
+          name: anteprime-png
+          path: anteprime/

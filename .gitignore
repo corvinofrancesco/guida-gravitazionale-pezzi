@@ -1,0 +1,12 @@
+# Output generati: ricostruibili con `python3 genera_svg.py`.
+# Non sono versionati; in PR li produce la CI come artifact (svg + anteprime PNG).
+svg/
+anteprime/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store

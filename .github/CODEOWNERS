@@ -1,0 +1,5 @@
+# Verifica umana obbligatoria: ogni modifica deve essere approvata dal proprietario.
+# SOSTITUISCI @TUO-UTENTE-GITHUB con il tuo username (o @org/team) su GitHub,
+# altrimenti la regola "Require review from Code Owners" non assegnera' nessuno.
+
+* @corvinofrancesco
