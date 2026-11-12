@@ -50,6 +50,15 @@ CONFIG = {
         "altezza": 92.0,           # altezza del corpo (senza maniglia)
         "maniglia_larghezza": 28.0,
         "maniglia_altezza": 14.0,
+        # Aperture libere marcate sulla sagoma (tacche). La paratia entra dall'asola
+        # di A6: la tacca allineata al bordo dell'uscita (lato inserimento) da' l'apertura.
+        "aperture": (30.0, 40.0, 50.0, 55.0),
+        "apertura_iniziale": 35.0,  # taratura di partenza suggerita (README §8), fra le tacche 30 e 40
+    },
+    # Pezzo piu' ingombrante da non bloccare: il re (base) -- vedi verifica a calcolo.
+    "re": {
+        "base_diametro": 50.0,
+        "gioco_minimo": 2.0,       # luce minima ammessa fra re e bordo dell'apertura
     },
     "guida_paratia_A6": {
         "lunghezza": 70.0,
@@ -282,6 +291,18 @@ def gate_part():
     p.add(text(W / 2, top + hand_h / 2 + 1, "presa", 2.4, "middle", T_GREY))
     p.add(text(W / 2, top + hand_h + H / 2, "si sfila per", 2.6, "middle", T_TXT))
     p.add(text(W / 2, top + hand_h + H / 2 + 4, "regolare l'uscita", 2.6, "middle", T_TXT))
+    # tacche di apertura: distanza dalla punta = uscita imbuto - apertura libera
+    bottom = top + hand_h + H
+    uscita = CONFIG["imbuto"]["uscita"]
+    p.add(text(W / 2, bottom - 58, "TACCHE = apertura libera (mm)", 2.4, "middle", T_RED))
+    p.add(text(W / 2, bottom - 54.6, "allinea la tacca al bordo A6", 2.2, "middle", T_GREY))
+    for ap in CONFIG["paratia_A5"]["aperture"]:
+        y = bottom - (uscita - ap)
+        p.add(line(0, y, W, y, S_ALIGN))
+        etichetta = "%s mm" % _f(ap)
+        if ap >= CONFIG["re"]["base_diametro"] + CONFIG["re"]["gioco_minimo"]:
+            etichetta += "  (passa il re)"
+        p.add(text(W - 2, y - 1.0, etichetta, 2.4, "end", T_RED))
     return p
 
 
@@ -504,6 +525,35 @@ def check_overlaps(pages):
                 a = boxes[i]; b = boxes[j]
                 if not (a[3] <= b[1] or b[3] <= a[1] or a[4] <= b[2] or b[4] <= a[2]):
                     raise ValueError("SOVRAPPOSIZIONE pagina %d: %s con %s" % (pi, a[0], b[0]))
+
+
+def verifica_passaggio_re():
+    """Verifica a calcolo: il re (base diametro 50) passa dall'imbuto a paratia aperta.
+
+    Controlla (1) l'uscita dell'imbuto, (2) la massima apertura marcata su A5,
+    (3) che le tacche stiano dentro il corpo della paratia. Solleva ValueError se no.
+    Restituisce le righe di report.
+    """
+    re_d = CONFIG["re"]["base_diametro"]
+    gioco = CONFIG["re"]["gioco_minimo"]
+    uscita = CONFIG["imbuto"]["uscita"]
+    aperture = CONFIG["paratia_A5"]["aperture"]
+    corpo = CONFIG["paratia_A5"]["altezza"]
+    ap_max = max(aperture)
+    if uscita < re_d + gioco:
+        raise ValueError("Uscita imbuto %.1f mm < re %.1f + gioco %.1f" % (uscita, re_d, gioco))
+    if ap_max < re_d + gioco:
+        raise ValueError("Apertura massima A5 %.1f mm < re %.1f + gioco %.1f" % (ap_max, re_d, gioco))
+    if uscita - min(aperture) > corpo:
+        raise ValueError("Tacca piu' stretta fuori dal corpo di A5")
+    return [
+        "Passaggio re (base diam. %s): uscita imbuto a paratia aperta %s mm -> gioco %s mm  OK" % (
+            _f(re_d), _f(uscita), _f(uscita - re_d)),
+        "Passaggio re: apertura massima A5 %s mm -> gioco %s mm (minimo richiesto %s)  OK" % (
+            _f(ap_max), _f(ap_max - re_d), _f(gioco)),
+        "Tacche A5 (mm): %s  |  taratura iniziale: %s" % (
+            " / ".join(_f(a) for a in aperture), _f(CONFIG["paratia_A5"]["apertura_iniziale"])),
+    ]
 
 
 # ---------------------------------------------------------------- pagine speciali
@@ -985,6 +1035,8 @@ def main():
             assert x + p.w <= CONTENT_W + 1e-6, "%s esce a dx" % p.code
             assert y + p.h <= CONTENT_H + 1e-6, "%s esce in basso" % p.code
         print("  foglio sagome %d: %s" % (i + 1, ", ".join("%s(%dx%d)" % (p.code, round(p.w), round(p.h)) for (p, k, x, y) in placements)))
+    for riga in verifica_passaggio_re():
+        print(riga)
     print("Tutti i tracciati validati come XML ben formato.")
     print("File per-pagina: %d in %s/" % (len(written), os.path.relpath(OUT, HERE)))
     print("File combinato:  %s" % os.path.relpath(combined, HERE))

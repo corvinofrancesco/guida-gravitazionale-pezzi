@@ -242,10 +242,29 @@ Tutte le unioni "critiche" sono **a nastro**: servono a spostare e regolare.
 | Altezza guida curva all'ingresso | combi `B4` | **~60 mm** | 50 → 65 |
 | Altezza guida curva all'uscita | combi `B4` | **~22 mm** | 18 → 26 |
 | Luce guida curva ↔ corpo | `B5` vs piano | **≥ 2 mm** | mai < 2 mm |
-| Apertura imbuto | paratia `A5` | **~35 mm** | 30 → 55 (55 per il re) |
+| Apertura imbuto | paratia `A5` | **~35 mm** | tacche 30 / 40 / 50 / 55 (55 per il re) |
 | Larghezza canale uscita | guide `C2` | **34 mm** | 30 / 34 / 38 |
 
 Regola **un parametro alla volta** e annota cosa cambia.
+
+### Taratura della paratia `A5` (tacche di apertura)
+
+Sulla sagoma di `A5` sono marcate **4 tacche** (30 / 40 / 50 / 55 mm). La paratia
+entra dall'asola formata da `A6` e copre una parte dell'uscita dell'imbuto (60 mm):
+**allinea la tacca scelta al bordo dell'asola `A6`** e l'apertura libera è il valore
+della tacca. La distanza della tacca dalla punta è `60 − apertura` (30 mm per la
+tacca 30, 5 mm per la tacca 55). Taratura di partenza: **~35 mm** (fra la tacca 30 e
+la 40); poi prova 40 e 30 per vedere quando entrano due pezzi insieme.
+
+**Nota a calcolo — il re (base ⌀50) passa.** A paratia tolta l'uscita è 60 mm
+(gioco 10 mm sul ⌀50); con la paratia sulla tacca **55** l'apertura libera è 55 mm
+(gioco 5 mm, oltre il minimo di 2 mm). La tacca 50 è al limite: lascia 0 mm di
+gioco, quindi **non** è una posizione per il re. Il generatore ripete questo
+controllo a ogni esecuzione e fallisce se l'uscita o la tacca massima scendono
+sotto `⌀50 + 2 mm` (valori in `CONFIG["re"]` e `CONFIG["paratia_A5"]`).
+
+> Resta da fare a mano (non è un calcolo): **provare fisicamente il re** sulla tacca
+> 55 e verificare che non si incastri, come da checklist della PR.
 
 ---
 
