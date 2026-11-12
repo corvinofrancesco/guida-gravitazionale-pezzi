@@ -21,9 +21,11 @@ Il deliverable sono **sagome di taglio in SVG, scala 1:1, su fogli A4**, prodott
 
 ## Architettura: il generatore è l'unica fonte di verità
 
-- **Si modifica solo [`genera_svg.py`](genera_svg.py)** (misure in cima al file e nei
-  singoli *builder* di parte: `ramp_floor`, `comb_part`, `prop_part`, `trapezoid_wall`,
-  le pagine `assembly_page` / `montaggio_*` / `quote_page`, ecc.).
+- **Si modifica solo [`genera_svg.py`](genera_svg.py)**. Le **misure si cambiano nel
+  blocco `CONFIG`** in cima al file (mm, con commenti): i *builder* di parte
+  (`ramp_floor`, `comb_part`, `prop_part`, `trapezoid_wall`, …) leggono da lì. Le
+  pagine `assembly_page` / `montaggio_*` / `quote_page` contengono disegni
+  schematici con coordinate proprie.
 - **Gli SVG in `svg/` sono OUTPUT generati** e **non sono versionati** (`.gitignore`).
   **Non editarli mai a mano.** Si rigenerano con un comando.
 - Nessuna dipendenza esterna: **solo libreria standard Python** (3.9+). Non aggiungere
