@@ -490,13 +490,23 @@ def tag_box(x, y, code, w=11.0, h=5.2):
             text(x + w / 2, y + h - 1.6, code, 3.0, "middle", T_CODE)]
 
 
-def callout(tx, ty, lx, ly, code, desc="", w=11.0):
-    """Pallino sul target + linea guida + riquadro codice a (lx,ly) + descrizione a destra."""
+def callout(tx, ty, lx, ly, code, desc="", w=11.0, desc_side="right"):
+    """Pallino sul target + linea guida + riquadro codice a (lx,ly) + descrizione.
+
+    desc_side: "right" (default), "left", "below" o "above" il riquadro: serve a
+    tenere la descrizione lontana da disegno e linee guida."""
     out = [line(tx, ty, lx + w / 2, ly + 2.6, S_DIM),
            '<circle cx="%s" cy="%s" r="0.9" style="fill:#111111;stroke:none"/>' % (_f(tx), _f(ty))]
     out += tag_box(lx, ly, code, w)
     if desc:
-        out.append(text(lx + w + 2, ly + 4, desc, 2.4, "start", T_TXT))
+        if desc_side == "right":
+            out.append(text(lx + w + 2, ly + 4, desc, 2.4, "start", T_TXT))
+        elif desc_side == "left":
+            out.append(text(lx - 2, ly + 4, desc, 2.4, "end", T_TXT))
+        elif desc_side == "below":
+            out.append(text(lx, ly + 5.2 + 3.4, desc, 2.4, "start", T_TXT))
+        else:  # "above"
+            out.append(text(lx, ly - 1.4, desc, 2.4, "start", T_TXT))
     return out
 
 
@@ -517,77 +527,88 @@ def assembly_page():
 
     # ---------------- (1) vista laterale
     e.append(text(14, 61, "1) Vista laterale (il pezzo scende da sinistra verso destra)", 3.0, style=T_CODE))
-    baseY = 116
+    baseY = 142
     e.append(line(22, baseY, 175, baseY, S_CUT))                    # base
     e += callout(150, baseY, 150, baseY + 4, "BP1", "base d'appoggio")
     # rampa inclinata (alta a sx, bassa a dx)
-    e.append(line(40, 72, 150, 112, S_CUT))
-    e += callout(96, 92, 100, 66, "B1", "piano rampa")
+    e.append(line(40, 98, 150, 138, S_CUT))
+    e += callout(84, 114, 58, 126, "B1", "piano rampa")
     # gamba
-    e.append(poly([(36, 72), (46, 72), (46, baseY), (36, baseY)], S_ALIGN))
-    e += callout(41, 100, 14, 96, "B6", "inclinazione 15-25")
+    e.append(poly([(36, 98), (46, 98), (46, baseY), (36, baseY)], S_ALIGN))
+    e += callout(41, 120, 50, baseY + 4, "B6", "inclinazione 15-25")
     # guida curva
-    e.append(path("M 46 62 Q 96 56 150 104", S_FOLD))
-    e += callout(96, 57, 118, 46, "B5", "guida curva (arco)")
+    e.append(path("M 46 88 Q 96 82 150 130", S_FOLD))
+    e += callout(97, 95.5, 124, 76, "B5", "guida curva (arco)")
     # soglia
-    e.append(line(138, 112, 138, 105, S_CUT))
-    e += callout(138, 108, 150, 98, "sog", "soglia/perno removibile", w=12)
+    e.append(line(138, 138, 138, 131, S_CUT))
+    e += callout(138, 134, 100, baseY + 4, "sog", "soglia/perno removibile", w=12)
     # imbuto sopra l'ingresso
-    e.append(poly([(26, 40), (58, 40), (48, 58), (36, 58)], S_CUT))
-    e.append(arrow(42, 59, 0, 10, "", S_CUT))
-    e += callout(42, 49, 14, 42, "A", "imbuto (dettaglio sotto)")
+    e.append(poly([(26, 66), (58, 66), (48, 84), (36, 84)], S_CUT))
+    e.append(arrow(42, 85, 0, 10, "", S_CUT))
+    e += callout(42, 75, 66, 68, "A", "imbuto (dettaglio sotto)")
     # uscita
-    e.append(line(150, 112, 172, 112, S_CUT))
-    e += callout(164, 112, 160, 120, "C1", "piano uscita")
+    e.append(line(150, 138, 172, 138, S_CUT))
+    e += callout(164, 138, 168, 118, "C1", "piano uscita")
     # pezzo in 3 fasi
     for (px, rot, lab) in [(60, -70, "coricato"), (100, -35, "in rotazione"), (146, 0, "verticale")]:
-        yy = 72 + (112 - 72) * ((px - 40) / (150 - 40)) - 7
+        yy = 98 + (138 - 98) * ((px - 40) / (150 - 40)) - 7
         e += green_piece(px, yy, rot, 0.9)
         e.append(text(px, yy + 11, lab, 2.2, "middle", "font-family:Helvetica;fill:#1b7a3d"))
 
-    # ---------------- (2) sezione A-A
-    e.append(text(14, 131, "2) Sezione A-A sul raddrizzatore", 3.0, style=T_CODE))
-    fy = 192
-    e.append(line(24, fy, 96, fy, S_CUT))                           # piano
-    e.append(rect(40, fy - 16, 3, 16, S_CUT))                       # guida B3 sx
-    e.append(rect(69, fy - 16, 3, 16, S_CUT))                       # guida B3 dx
-    e.append(rect(34, fy - 24, 2.5, 24, S_CUT))                     # parete B2 sx
-    e.append(rect(77.5, fy - 24, 2.5, 24, S_CUT))                   # parete B2 dx
-    e.append(line(33, fy, 35, fy - 36, S_CUT))                      # combo B4 sx
-    e.append(line(80, fy, 78, fy - 36, S_CUT))                      # combo B4 dx
-    e.append(path("M 34 %s Q 56 %s 78 %s" % (_f(fy - 34), _f(fy - 40), _f(fy - 34)), S_FOLD))  # B5
+    # ---------------- (2) sezione A-A (callout a sinistra e a destra del disegno)
+    e.append(text(14, 160, "2) Sezione A-A sul raddrizzatore", 3.0, style=T_CODE))
+    fy = 214
+    dx = 45                                                          # sposta il disegno verso il centro
+    e.append(line(24 + dx, fy, 96 + dx, fy, S_CUT))                  # piano
+    e.append(rect(40 + dx, fy - 16, 3, 16, S_CUT))                   # guida B3 sx
+    e.append(rect(69 + dx, fy - 16, 3, 16, S_CUT))                   # guida B3 dx
+    e.append(rect(34 + dx, fy - 24, 2.5, 24, S_CUT))                 # parete B2 sx
+    e.append(rect(77.5 + dx, fy - 24, 2.5, 24, S_CUT))               # parete B2 dx
+    e.append(line(33 + dx, fy, 35 + dx, fy - 36, S_CUT))             # combo B4 sx
+    e.append(line(80 + dx, fy, 78 + dx, fy - 36, S_CUT))             # combo B4 dx
+    e.append(path("M %s %s Q %s %s %s %s" % (_f(34 + dx), _f(fy - 34), _f(56 + dx), _f(fy - 40),
+                                             _f(78 + dx), _f(fy - 34)), S_FOLD))  # B5
     # pezzo in piedi dentro al canale
-    e.append(rect(41, fy - 6, 30, 6, "fill:none;stroke:#1b7a3d;stroke-width:0.5"))
-    e.append(rect(50, fy - 28, 12, 22, "fill:none;stroke:#1b7a3d;stroke-width:0.5"))
-    e.append('<circle cx="56" cy="%s" r="5" style="fill:none;stroke:#1b7a3d;stroke-width:0.5"/>' % _f(fy - 33))
-    e += callout(35, fy - 20, 12, 150, "B2", "pareti rampa")
-    e += callout(41, fy - 8, 12, 162, "B3", "canale base 30-38")
-    e += callout(34, fy - 24, 12, 174, "B4", "sostegni guida curva")
-    e += callout(78, fy - 37, 84, 146, "B5", "striscia curva")
+    e.append(rect(41 + dx, fy - 6, 30, 6, "fill:none;stroke:#1b7a3d;stroke-width:0.5"))
+    e.append(rect(50 + dx, fy - 28, 12, 22, "fill:none;stroke:#1b7a3d;stroke-width:0.5"))
+    e.append('<circle cx="%s" cy="%s" r="5" style="fill:none;stroke:#1b7a3d;stroke-width:0.5"/>' % (_f(56 + dx), _f(fy - 33)))
+    # tag a sinistra (descrizione sopra il riquadro: non incrocia le linee guida)
+    e += callout(35 + dx, fy - 18, 14, 180, "B2", "pareti rampa", desc_side="above")
+    e += callout(34 + dx, fy - 12, 14, 192, "B4", "sostegni guida curva", desc_side="above")
+    e += callout(41.5 + dx, fy - 8, 14, 204, "B3", "canale base 30-38", desc_side="above")
+    # tag a destra
+    e += callout(56 + dx, fy - 37, 140, 168, "B5", "striscia curva")
 
-    # ---------------- (3) vista dall'alto
-    e.append(text(108, 131, "3) Vista dall'alto (canale + imbuto)", 3.0, style=T_CODE))
-    e.append(rect(126, 150, 70, 30, S_FRAME))
-    e.append(line(126, 158, 196, 158, S_CUT))
-    e.append(line(126, 172, 196, 172, S_CUT))
+    # ---------------- (3) vista dall'alto: tag in alto e in basso
+    oy = 86
+    e.append(text(14, 224, "3) Vista dall'alto (canale + imbuto)", 3.0, style=T_CODE))
+    e.append(rect(126, 150 + oy, 70, 30, S_FRAME))
+    e.append(line(126, 158 + oy, 196, 158 + oy, S_CUT))
+    e.append(line(126, 172 + oy, 196, 172 + oy, S_CUT))
     # imbuto (bocca) a sx
-    e.append(poly([(110, 148), (126, 156), (126, 174), (110, 182)], S_CUT))
-    e.append(rect(124, 156, 3, 18, S_CUT))                          # paratia
-    e.append(arrow(182, 154, 12, 0, "pezzi", S_CUT))
-    e += callout(116, 152, 108, 138, "A1", "parete fronte/retro")
-    e += callout(120, 178, 150, 138, "A3", "parete laterale")
-    e += callout(125, 165, 108, 186, "A5", "paratia regolab.")
-    e += callout(126, 156, 150, 186, "A6", "guide paratia")
-    e += callout(196, 165, 170, 150, "C2", "guide uscita")
+    e.append(poly([(110, 148 + oy), (126, 156 + oy), (126, 174 + oy), (110, 182 + oy)], S_CUT))
+    e.append(rect(124, 156 + oy, 3, 18, S_CUT))                      # paratia
+    e.append(arrow(170, 165 + oy, 12, 0, "pezzi", S_CUT))
+    e += callout(118, 152 + oy, 96, 138 + oy, "A1", "parete fronte/retro")
+    e += callout(126, 156 + oy, 134, 138 + oy, "A6", "guide paratia")
+    e += callout(190, 158 + oy, 170, 138 + oy, "C2", "guide uscita")
+    e += callout(118, 178 + oy, 96, 190 + oy, "A3", "parete laterale")
+    e += callout(125, 165 + oy, 134, 190 + oy, "A5", "paratia regolab.")
     return e
 
 
 def _steps(x, y, title, steps, wrap=52):
+    """Titolo + passi numerati. Le righe che iniziano con spazi sono la
+    CONTINUAZIONE del passo precedente (rientrate, senza numero)."""
     out = [text(x, y, title, 3.4, style=T_CODE)]
     yy = y + 6
-    for i, s in enumerate(steps, 1):
-        line1 = "%d. %s" % (i, s)
-        out.append(text(x, yy, line1, 2.5, style=T_TXT))
+    n = 0
+    for s in steps:
+        if s.startswith(" "):
+            out.append(text(x + 4, yy, s.strip(), 2.5, style=T_TXT))
+        else:
+            n += 1
+            out.append(text(x, yy, "%d. %s" % (n, s), 2.5, style=T_TXT))
         yy += 4.4
     return out, yy
 
@@ -598,7 +619,7 @@ def montaggio_ab():
 
     # ====== MODULO A - esploso
     e.append(text(14, 50, "Modulo A - imbuto (esploso)", 3.0, style=T_CODE))
-    ox, oy = 48, 80                           # centro uscita
+    ox, oy = 44, 86                           # centro uscita
     s = 16
     e.append(rect(ox - s / 2, oy - s / 2, s, s, S_ALIGN))          # uscita 60x60
     e.append(text(ox, oy + 1, "uscita", 2.1, "middle", T_GREY))
@@ -614,14 +635,14 @@ def montaggio_ab():
     for (ax, ay, dx, dy) in [(ox, oy - 27, 0, -4), (ox, oy + 27, 0, 4), (ox - 25, oy, -4, 0), (ox + 25, oy, 4, 0)]:
         e.append(arrow(ax, ay, dx, dy, "", S_FOLD))
     e += callout(ox, oy - 24, 70, 54, "A1", "fronte/retro (x2)")
-    e += callout(ox - 22, oy, 12, 92, "A3", "lati (x2)")
+    e += callout(ox - 22, oy, 12, 98, "A3", "lati (x2)")
     # paratia a lato
     e.append(rect(84, oy - 10, 6, 24, S_CUT))
     e.append(arrow(83, oy, -6, 0, "", S_FOLD))
-    e += callout(87, oy + 14, 78, 100, "A5", "paratia regolabile")
-    e += callout(ox + s / 2, oy - s / 2, 70, 100, "A6", "guide paratia (x2)")
+    e += callout(87, oy + 12, 84, 116, "A5", "paratia regolabile")
+    e += callout(ox + s / 2, oy - s / 2, 30, 118, "A6", "guide paratia (x2)")
 
-    st, _ = _steps(104, 50, "Passi - modulo A", [
+    st, _ = _steps(110, 50, "Passi - modulo A", [
         "Unisci le 4 pareti (A1 x2 + A3 x2) con nastro",
         "   sugli spigoli: tronco di piramide, bocca in alto.",
         "Uscita in basso ~60x60 mm.",
@@ -631,37 +652,39 @@ def montaggio_ab():
     ])
     e += st
 
-    # ====== MODULO B - esploso (vista laterale)
+    # ====== MODULO B - esploso (vista laterale): tag in colonna a destra
     e.append(text(14, 132, "Modulo B - rampa (esploso, vista laterale)", 3.0, style=T_CODE))
     bY = 205
     e.append(line(20, bY, 116, bY, S_CUT))
-    e += tag_box(100, bY + 2, "BP1")
     # rampa sollevata
     e.append(line(30, 158, 114, 196, S_CUT))
-    e += tag_box(70, 150, "B1")
-    e.append(line(114, 196, 114, bY, S_DIM)); e.append(text(116, bY - 4, "cerniera (nastro)", 2.2, style=T_GREY))
+    e.append(line(114, 196, 114, bY, S_DIM))
+    e.append(text(112, bY - 5, "cerniera (nastro)", 2.2, "end", T_GREY))
     # gamba
     e.append(poly([(26, 158), (34, 158), (34, bY), (26, bY)], S_ALIGN))
-    e += tag_box(12, 170, "B6")
-    # pareti/guide/combi (indicate con tacche + tag)
-    e.append(path("M 36 150 Q 75 146 112 184", S_FOLD)); e += tag_box(74, 138, "B5")
+    # pareti B2 e guide B3 (parallele alla rampa, a titolo indicativo)
+    e.append(line(30, 146, 114, 184, S_DIM))
+    e.append(line(30, 153, 114, 191, S_DIM))
+    # guida curva e sostegni
+    e.append(path("M 36 150 Q 75 146 112 184", S_FOLD))
     e.append(line(44, 171, 44, 162, S_CUT)); e.append(line(90, 189, 90, 180, S_CUT))
-    e += tag_box(44, 158, "B4")
-    e += tag_box(55, 176, "B3")
-    e += tag_box(55, 184, "B2")
-    e.append(text(20, bY + 9, "B2 pareti, B3 canale, B4 sostegni curva: vedi sezione nel foglio d'assieme.", 2.3, style=T_GREY))
+    # richiami con linea di riferimento (ordinati per quota: le linee non si incrociano)
+    e += callout(60, 159.6, 128, 144, "B2", "pareti (parallele alla rampa)")
+    e += callout(89.6, 165, 128, 156, "B5", "striscia guida curva")
+    e += callout(80, 175.6, 128, 168, "B3", "guide canale")
+    e += callout(90, 184, 128, 180, "B4", "sostegni guida curva")
+    e += callout(100, 189.7, 128, 192, "B1", "piano rampa")
+    e += callout(105, bY, 128, 204, "BP1", "base", w=12)
+    e += callout(34, 190, 40, 196, "B6", "gambe (x2)")
 
-    st2, _ = _steps(124, 132, "Passi - modulo B", [
-        "Su B1 trovi le linee-guida (canale, pareti,",
-        "   combi, soglia): servono a posizionare le parti.",
+    st2, _ = _steps(14, 222, "Passi - modulo B", [
+        "Su B1 trovi le linee-guida (canale, pareti, combi, soglia): servono a posizionare le parti.",
         "Piega e fissa le pareti B2 x2 ai lati.",
         "Fissa le guide B3 x2 nel canale (parti da 38 mm).",
-        "Incolla i combi B4 x2 in piedi, lato alto",
-        "   verso l'ingresso.",
+        "Incolla i combi B4 x2 in piedi, lato alto verso l'ingresso.",
         "Curva la striscia B5 e appoggiala sui combi.",
         "Metti la soglia removibile vicino all'uscita.",
-        "Fissa B1 a BP1 con nastro (cerniera) e solleva",
-        "   il lato alto con le gambe B6 x2.",
+        "Fissa B1 a BP1 con nastro (cerniera) e solleva il lato alto con le gambe B6 x2.",
     ])
     e += st2
     return e
@@ -674,14 +697,14 @@ def montaggio_c_union():
     # ===== modulo C esploso
     e.append(text(14, 50, "Modulo C - uscita (esploso, vista dall'alto)", 3.0, style=T_CODE))
     e.append(rect(34, 58, 40, 46, S_CUT))                 # piano C1
-    e += callout(54, 80, 12, 64, "C1", "piano uscita")
+    e += callout(54, 80, 10, 72, "C1", "piano uscita", desc_side="below")
     e.append(rect(34, 58, 4, 46, S_ALIGN))               # guida sx
     e.append(rect(70, 58, 4, 46, S_ALIGN))               # guida dx
     e.append(arrow(30, 70, 6, 0, "", S_FOLD)); e.append(arrow(78, 70, -6, 0, "", S_FOLD))
     e += callout(72, 100, 80, 96, "C2", "guide (x2) piegate in su")
     e.append(text(54, 110, "canale 30-38 mm", 2.2, "middle", T_GREY))
 
-    st, _ = _steps(104, 50, "Passi - modulo C", [
+    st, _ = _steps(110, 50, "Passi - modulo C", [
         "Su C1 piega e fissa le guide C2 x2 lungo",
         "   le linee del canale.",
         "Stessa larghezza del canale della rampa.",
@@ -690,24 +713,26 @@ def montaggio_c_union():
     e += st
 
     # ===== unione dei moduli
-    e.append(text(14, 132, "Unione dei moduli (vista laterale d'insieme)", 3.0, style=T_CODE))
-    bY = 196
+    e.append(text(14, 124, "Unione dei moduli (vista laterale d'insieme)", 3.0, style=T_CODE))
+    bY = 214
     e.append(line(20, bY, 190, bY, S_CUT))
-    e += callout(170, bY, 168, bY + 4, "BP1", "base: tutto si fissa qui")
+    e += callout(125, bY, 118, bY + 4, "BP1", "base: tutto si fissa qui")
     # rampa B
-    e.append(line(50, 150, 150, 190, S_CUT)); e += callout(100, 171, 96, 150, "B", "rampa")
-    e.append(poly([(46, 150), (56, 150), (56, bY), (46, bY)], S_ALIGN)); e += tag_box(30, 156, "B6")
-    e.append(line(150, 190, 150, bY, S_DIM)); e.append(text(152, bY - 3, "cerniera nastro", 2.2, style=T_GREY))
+    e.append(line(50, 168, 150, 208, S_CUT)); e += callout(100, 188, 96, 160, "B", "rampa")
+    e.append(poly([(46, 168), (56, 168), (56, bY), (46, bY)], S_ALIGN))
+    e += callout(51, 192, 22, 198, "B6", "gambe (x2)", desc_side="below")
+    e.append(line(150, 208, 150, bY, S_DIM)); e.append(text(152, bY - 3, "cerniera nastro", 2.2, style=T_GREY))
     # imbuto A
-    e.append(poly([(36, 112), (72, 112), (60, 136), (48, 136)], S_CUT)); e += callout(54, 124, 14, 110, "A", "imbuto sopra l'ingresso")
-    e.append(arrow(54, 137, 0, 10, "", S_CUT))
+    e.append(poly([(36, 130), (72, 130), (60, 154), (48, 154)], S_CUT))
+    e += callout(54, 142, 80, 132, "A", "imbuto sopra l'ingresso")
+    e.append(arrow(54, 155, 0, 10, "", S_CUT))
     # uscita C
-    e.append(line(150, 190, 178, 190, S_CUT)); e += callout(166, 190, 160, 172, "C", "uscita a filo")
+    e.append(line(150, 208, 178, 208, S_CUT)); e += callout(166, 208, 160, 188, "C", "uscita a filo")
     # pezzi
-    e += green_piece(70, 162, -40, 0.8)
-    e += green_piece(140, 186, 0, 0.8)
+    e += green_piece(70, 180, -40, 0.8)
+    e += green_piece(140, 204, 0, 0.8)
 
-    st2, _ = _steps(14, 212, "Passi - unione", [
+    st2, _ = _steps(14, 230, "Passi - unione", [
         "Fissa B1 a BP1 con nastro (cerniera), lato ingresso in alto; solleva con B6.",
         "Metti il modulo C nell'impronta, a filo sotto l'uscita della rampa.",
         "Sostieni l'imbuto A sopra l'ingresso (montanti di scarto) cosi' l'uscita cade nel canale.",
