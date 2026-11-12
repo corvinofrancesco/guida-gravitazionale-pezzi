@@ -81,6 +81,10 @@ CONFIG = {
         "altezza_ingresso": 60.0,  # altezza guida curva all'ingresso
         "altezza_uscita": 22.0,    # altezza guida curva all'uscita
         "linguetta": 12.0,
+        # Profilo del bordo superiore dei combi: "lineare" (default, attuale) oppure uno
+        # dei profili SPERIMENTALI: "dolce", "accentuata". Si puo' scegliere anche da
+        # riga di comando:  python3 genera_svg.py --profilo dolce
+        "profilo": "lineare",
     },
     "striscia_B5": {
         "lunghezza": 150.0,
@@ -306,6 +310,17 @@ def gate_part():
     return p
 
 
+# Profili del bordo superiore dei combi B4. Ogni funzione f(t), con t = 0..1 lungo il
+# combo (0 = ingresso, 1 = uscita), da' la frazione di discesa fra altezza_ingresso
+# e altezza_uscita: f(0) = 0, f(1) = 1. "lineare" e' l'attuale (default, NON cambia).
+# "dolce" e "accentuata" sono IPOTESI da provare fisicamente (README §9).
+PROFILI_B4 = {
+    "lineare": lambda t: t,                         # retta ingresso -> uscita (attuale)
+    "dolce": lambda t: 3 * t ** 2 - 2 * t ** 3,     # S dolce: parte e arriva piatta
+    "accentuata": lambda t: t ** 2.2,               # resta alta a lungo, poi scende deciso
+}
+
+
 def comb_part():
     """Sostegno (combo) della guida curva: trapezio rettangolo alto all'ingresso,
     basso all'uscita; linguetta di base; linea di ritaglio alternativa per cambiare la curva."""
@@ -316,16 +331,34 @@ def comb_part():
     p = Part("B4", "Combo guida curva", 2, "cartone ondulato", L, LBL + HE + tab)
     top = LBL
     bottom = top + HE
-    pts = [(0, top), (L, top + (HE - HX)), (L, bottom), (0, bottom)]
+    profilo = c["profilo"]
+    if profilo not in PROFILI_B4:
+        raise ValueError("Profilo B4 sconosciuto: %r (validi: %s)" % (profilo, ", ".join(PROFILI_B4)))
+    if profilo == "lineare":
+        pts = [(0, top), (L, top + (HE - HX)), (L, bottom), (0, bottom)]
+    else:
+        # profilo SPERIMENTALE: bordo superiore campionato (stessi estremi del lineare)
+        N = 24
+        sup = [(L * i / N, top + (HE - HX) * PROFILI_B4[profilo](i / N)) for i in range(N + 1)]
+        pts = sup + [(L, bottom), (0, bottom)]
     p.add(poly(pts, S_CUT))
+    if profilo != "lineare":
+        p.name = "Combo guida curva [sperimentale: %s]" % profilo
     p.label()
-    # linea di ritaglio alternativa (curva piu dolce) tratto-punto
-    d = "M 0 %s C %s %s, %s %s, %s %s" % (_f(top + 8), _f(L * 0.4), _f(top + 10),
-                                          _f(L * 0.7), _f(top + (HE - HX) - 6), _f(L), _f(top + (HE - HX) + 2))
-    p.add(path(d, S_ALIGN))
+    if profilo == "lineare":
+        # linea di ritaglio alternativa (curva piu dolce) tratto-punto
+        d = "M 0 %s C %s %s, %s %s, %s %s" % (_f(top + 8), _f(L * 0.4), _f(top + 10),
+                                              _f(L * 0.7), _f(top + (HE - HX) - 6), _f(L), _f(top + (HE - HX) + 2))
+        p.add(path(d, S_ALIGN))
+    else:
+        # il profilo lineare (default) resta tracciato come riferimento di confronto
+        p.add(line(0, top, L, top + (HE - HX), S_ALIGN))
+        p.add(text(L * 0.5, top + 32, "PROFILO SPERIMENTALE: " + profilo.upper() + " (non validato)", 2.6, "middle", T_RED))
+        p.add(text(L * 0.5, top + 36, "tratto-punto = profilo lineare di riferimento", 2.3, "middle", T_GREY))
     p.add(text(4, top + 6, "ingresso (alto)", 2.4, style=T_TXT))
     p.add(text(L - 4, top + (HE - HX) + 5, "uscita (basso)", 2.4, "end", style=T_TXT))
-    p.add(text(L * 0.5, top + 20, "- - -  profilo alternativo: ritaglia qui per curva piu dolce", 2.3, "middle", T_RED))
+    if profilo == "lineare":
+        p.add(text(L * 0.5, top + 20, "- - -  profilo alternativo: ritaglia qui per curva piu dolce", 2.3, "middle", T_RED))
     p.add(arrow(10, bottom - 4, 26, 0, "verso valle", S_ALIGN))
     p.add(glue_tab(0, bottom, L, tab, "top"))
     p.add(text(L / 2, bottom + tab - 2, "piega + incolla sul fianco della rampa", 2.3, "middle", T_GREY))
@@ -982,9 +1015,10 @@ def validate_xml(path_):
 
 
 # ---------------------------------------------------------------- main
-def main():
-    if not os.path.isdir(OUT):
-        os.makedirs(OUT)
+def main(out=OUT):
+    """Genera tutti i fogli in `out` usando i valori correnti di CONFIG."""
+    if not os.path.isdir(out):
+        os.makedirs(out)
 
     parts = build_parts()
     part_pages = pack(parts)
@@ -1015,18 +1049,18 @@ def main():
     # scrivi file per-pagina
     written = []
     for i, els in enumerate(pages_full):
-        fn = os.path.join(OUT, "foglio-%02d.svg" % (i + 1))
+        fn = os.path.join(out, "foglio-%02d.svg" % (i + 1))
         write_single(fn, els)
         validate_xml(fn)
         written.append(fn)
 
     # scrivi file combinato multi-pagina
-    combined = os.path.join(OUT, "guida-pezzi-tutto.svg")
+    combined = os.path.join(out, "guida-pezzi-tutto.svg")
     write_combined(combined, pages_full)
     validate_xml(combined)
 
     # report di verifica
-    print("=== Verifica generazione ===")
+    print("=== Verifica generazione (profilo B4: %s) ===" % CONFIG["combo_B4"]["profilo"])
     print("Parti distinte: %d  |  pezzi fisici totali: %d" % (len(parts), sum(p.qty for p in parts)))
     print("Pagine totali: %d  (%d doc + %d sagome)" % (total, len(specials), len(part_pages)))
     for i, placements in enumerate(part_pages):
@@ -1038,9 +1072,29 @@ def main():
     for riga in verifica_passaggio_re():
         print(riga)
     print("Tutti i tracciati validati come XML ben formato.")
-    print("File per-pagina: %d in %s/" % (len(written), os.path.relpath(OUT, HERE)))
+    print("File per-pagina: %d in %s/" % (len(written), os.path.relpath(out, HERE)))
     print("File combinato:  %s" % os.path.relpath(combined, HERE))
 
 
+def cli():
+    import argparse
+    ap = argparse.ArgumentParser(description="Genera le sagome SVG 1:1 della guida gravitazionale.")
+    ap.add_argument("--profilo", choices=sorted(PROFILI_B4), default=None,
+                    help="profilo del bordo dei combi B4 (default: quello in CONFIG, 'lineare'). "
+                         "'dolce' e 'accentuata' sono SPERIMENTALI; l'output va in svg/profilo-<nome>/")
+    ap.add_argument("--tutte-le-varianti", action="store_true",
+                    help="genera e auto-verifica tutti i profili B4 (default in svg/, varianti in svg/profilo-<nome>/)")
+    args = ap.parse_args()
+
+    if args.tutte_le_varianti:
+        for nome in PROFILI_B4:
+            CONFIG["combo_B4"]["profilo"] = nome
+            main(OUT if nome == "lineare" else os.path.join(OUT, "profilo-" + nome))
+    else:
+        nome = args.profilo or CONFIG["combo_B4"]["profilo"]
+        CONFIG["combo_B4"]["profilo"] = nome
+        main(OUT if nome == "lineare" else os.path.join(OUT, "profilo-" + nome))
+
+
 if __name__ == "__main__":
-    main()
+    cli()
