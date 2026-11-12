@@ -289,6 +289,44 @@ Poi ripeti versando **3–5 pezzi mescolati** dall'imbuto e conta quanti escono 
 piedi. Infine prova con un **pezzo grande** (es. torre/re) solo per verificare che
 **non si incastri** (non si pretende che li raddrizzi).
 
+### 9.1 Profili alternativi del raddrizzatore `B4` (SPERIMENTALI)
+
+Oltre al profilo attuale (**`lineare`**, default, invariato) il generatore sa produrre
+due profili del bordo superiore dei combi `B4`. Sono **ipotesi da provare**, non
+soluzioni: quale (se uno) funzioni lo decide solo la prova fisica.
+
+| Profilo | Forma del bordo superiore | Ipotesi da verificare |
+|---|---|---|
+| `lineare` (default) | retta ingresso → uscita | riferimento: è la forma attuale |
+| `dolce` (sperimentale) | S morbida: parte e arriva quasi piatta | accompagna il corpo con meno urti sul collo |
+| `accentuata` (sperimentale) | resta alta a lungo, poi scende deciso verso l'uscita | forza di più il ribaltamento base-in-basso vicino alla soglia |
+
+```bash
+python3 genera_svg.py --profilo dolce        # solo la variante: svg/profilo-dolce/
+python3 genera_svg.py --profilo accentuata   # svg/profilo-accentuata/
+python3 genera_svg.py --tutte-le-varianti    # tutti i profili, ognuno auto-verificato
+```
+
+In alternativa si cambia `CONFIG["combo_B4"]["profilo"]`. Sulla sagoma di una
+variante compare «PROFILO SPERIMENTALE (non validato)» e il profilo lineare resta
+tracciato a tratto-punto per confronto. Estremi (altezza all'ingresso e all'uscita)
+e luce minima ≥ 2 mm della guida `B5` non cambiano fra le varianti.
+
+**Protocollo di prova (da far eseguire a una persona), per ogni profilo:** monta con
+quel profilo, tieni fermi tutti gli altri parametri (§8) e prova il **pedone** nei
+tre orientamenti, **10 lanci ciascuno**, a mano e prima di usare l'imbuto:
+
+| Orientamento d'ingresso | lineare | dolce | accentuata |
+|---|---|---|---|
+| 1. verticale — esce in piedi? | …/10 | …/10 | …/10 |
+| 2. coricato, base verso valle — esce in piedi? | …/10 | …/10 | …/10 |
+| 3. coricato, base verso monte (caso difficile) — esce in piedi? | …/10 | …/10 | …/10 |
+
+Annota anche dove si blocca o cade (guida curva, soglia, canale). Se un profilo
+peggiora il caso 1 rispetto a `lineare`, scartalo: il caso verticale deve restare in
+piedi. Non dichiarare «funzionante» nessun profilo finché i numeri non lo mostrano
+su più lanci e con il tuo cartone.
+
 ---
 
 ## 10. Inceppamenti e modifiche
