@@ -33,6 +33,69 @@ GAP = 7.0                             # spazio fra le parti nel packing
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "svg")
 
+# ---------------------------------------------------------------- CONFIG (misure in mm)
+# Tutte le misure chiave del prototipo stanno qui: per sperimentare si cambia SOLO
+# questo blocco e si rilancia il generatore (python3 genera_svg.py).
+# Unita': millimetri, salvo dove indicato (gradi). I builder leggono da CONFIG.
+CONFIG = {
+    # --- Modulo A: imbuto -------------------------------------------------
+    "imbuto": {
+        "bocca_lunga": 140.0,      # apertura superiore, lato lungo (pareti A1)
+        "bocca_corta": 110.0,      # apertura superiore, lato corto (pareti A3)
+        "uscita": 60.0,            # uscita a paratia aperta (quadrata)
+        "altezza": 90.0,           # altezza dell'imbuto
+    },
+    "paratia_A5": {
+        "larghezza": 64.0,         # larghezza del corpo della paratia
+        "altezza": 92.0,           # altezza del corpo (senza maniglia)
+        "maniglia_larghezza": 28.0,
+        "maniglia_altezza": 14.0,
+    },
+    "guida_paratia_A6": {
+        "lunghezza": 70.0,
+        "altezza": 14.0,
+        "linguetta": 10.0,
+    },
+    # --- Modulo B: rampa + raddrizzatore -----------------------------------
+    "rampa": {
+        "larghezza": 120.0,        # piano B1
+        "lunghezza": 180.0,        # piano B1 (e lunghezza utile di B2/B3)
+        "parete_altezza": 45.0,    # pareti laterali B2
+        "parete_linguetta": 12.0,
+        "guida_base_altezza": 16.0,   # guide inferiori B3
+        "guida_base_linguetta": 10.0,
+        "canale": (30.0, 34.0, 38.0),  # larghezze di canale previste (B3 e C2)
+        "combi_distanza_da_asse": 26.0,  # posizione dei combi B4 sul piano
+    },
+    "combo_B4": {
+        "lunghezza": 140.0,
+        "altezza_ingresso": 60.0,  # altezza guida curva all'ingresso
+        "altezza_uscita": 22.0,    # altezza guida curva all'uscita
+        "linguetta": 12.0,
+    },
+    "striscia_B5": {
+        "lunghezza": 150.0,
+        "altezza": 42.0,
+    },
+    "gamba_B6": {
+        "altezze": (48.0, 65.0, 84.0),   # gradini per 15 / 20 / 25 gradi
+        "gradino": 24.0,                 # larghezza di ogni gradino
+        "linguetta": 12.0,
+    },
+    "base_BP1": {
+        "larghezza": 140.0,
+        "lunghezza": 190.0,
+    },
+    # --- Modulo C: uscita ---------------------------------------------------
+    "uscita_C": {
+        "larghezza": 60.0,         # piano C1
+        "lunghezza": 110.0,        # piano C1
+        "guida_lunghezza": 110.0,  # guide C2
+        "guida_altezza": 22.0,
+        "guida_linguetta": 10.0,
+    },
+}
+
 # ---------------------------------------------------------------- stili
 S_CUT   = "fill:none;stroke:#111111;stroke-width:0.4;stroke-linejoin:round;stroke-linecap:round"
 S_FOLD  = "fill:none;stroke:#1565c0;stroke-width:0.3;stroke-dasharray:3,2"
@@ -205,7 +268,8 @@ def trapezoid_wall(code, name, qty, material, T, B, slant, note=""):
 
 def gate_part():
     """Paratia regolabile dell'imbuto, con maniglia."""
-    W, H, hand_w, hand_h = 64.0, 92.0, 28.0, 14.0
+    g = CONFIG["paratia_A5"]
+    W, H, hand_w, hand_h = g["larghezza"], g["altezza"], g["maniglia_larghezza"], g["maniglia_altezza"]
     p = Part("A5", "Paratia regolabile", 1, "cartone ondulato", W, LBL + H + hand_h)
     top = LBL
     # maniglia + corpo come un unico profilo chiuso
@@ -224,9 +288,10 @@ def gate_part():
 def comb_part():
     """Sostegno (combo) della guida curva: trapezio rettangolo alto all'ingresso,
     basso all'uscita; linguetta di base; linea di ritaglio alternativa per cambiare la curva."""
-    L = 140.0
-    HE, HX = 60.0, 22.0
-    tab = 12.0
+    c = CONFIG["combo_B4"]
+    L = c["lunghezza"]
+    HE, HX = c["altezza_ingresso"], c["altezza_uscita"]
+    tab = c["linguetta"]
     p = Part("B4", "Combo guida curva", 2, "cartone ondulato", L, LBL + HE + tab)
     top = LBL
     bottom = top + HE
@@ -248,7 +313,7 @@ def comb_part():
 
 def strip_part():
     """Striscia della guida curva in cartoncino sottile (si curva ad arco)."""
-    W, H = 150.0, 42.0
+    W, H = CONFIG["striscia_B5"]["lunghezza"], CONFIG["striscia_B5"]["altezza"]
     p = Part("B5", "Striscia guida curva", 1, "cartoncino sottile", W, LBL + H)
     top = LBL
     p.add(rect(0, top, W, H, S_CUT))
@@ -261,9 +326,10 @@ def strip_part():
 
 def prop_part():
     """Gamba d'inclinazione a gradini (15/20/25 gradi) con piede."""
-    H1, H2, H3 = 48.0, 65.0, 84.0
-    d = 24.0
-    tab = 12.0
+    g = CONFIG["gamba_B6"]
+    H1, H2, H3 = g["altezze"]
+    d = g["gradino"]
+    tab = g["linguetta"]
     W = 3 * d
     p = Part("B6", "Gamba inclinazione", 2, "cartone ondulato (2-3 strati)", W, LBL + H3 + tab)
     top = LBL
@@ -286,7 +352,8 @@ def prop_part():
 
 def ramp_floor():
     """Piano della rampa con linee di riferimento per canale, combi, pareti, soglia."""
-    W, H = 120.0, 180.0
+    r = CONFIG["rampa"]
+    W, H = r["larghezza"], r["lunghezza"]
     p = Part("B1", "Piano rampa", 1, "cartone ondulato rigido", W, LBL + H)
     top = LBL
     cx = W / 2
@@ -298,16 +365,18 @@ def ramp_floor():
     p.add(text(4, top - 0.8, "parete B2", 2.2, "start", T_RED))
     p.add(text(W - 4, top - 0.8, "parete B2", 2.2, "end", T_RED))
     # guide inferiori (canale base) a 30/34/38 mm -> semilarghezze 15/17/19
-    for hw, lab in [(15, "30"), (17, "34"), (19, "38")]:
+    for cw in r["canale"]:
+        hw = int(cw / 2) if cw % 2 == 0 else cw / 2
         p.add(line(cx - hw, top + 8, cx - hw, top + H - 30, S_ALIGN))
         p.add(line(cx + hw, top + 8, cx + hw, top + H - 30, S_ALIGN))
     p.add(text(cx, top + 14, "canale base B3: 30 / 34 / 38 mm", 2.4, "middle", T_RED))
     p.add(text(cx, top + 17.2, "(parti dall'esterno = 38, poi stringi)", 2.2, "middle", T_GREY))
     # posizione combi B4
-    for x in (cx - 26, cx + 26):
+    dc = r["combi_distanza_da_asse"]
+    for x in (cx - dc, cx + dc):
         p.add(line(x, top + 10, x, top + 150, S_ALIGN))
-    p.add(text(cx - 26, top + 155, "combo B4", 2.2, "middle", T_RED))
-    p.add(text(cx + 26, top + 155, "combo B4", 2.2, "middle", T_RED))
+    p.add(text(cx - dc, top + 155, "combo B4", 2.2, "middle", T_RED))
+    p.add(text(cx + dc, top + 155, "combo B4", 2.2, "middle", T_RED))
     # soglia removibile
     p.add(line(10, top + H - 22, W - 10, top + H - 22, S_ALIGN))
     p.add(text(cx, top + H - 23.5, "soglia / gradino removibile (pivot)", 2.4, "middle", T_RED))
@@ -320,7 +389,7 @@ def ramp_floor():
 
 def base_plate():
     """Base d'appoggio con riferimenti di cerniera, gambe e impronte moduli."""
-    W, H = 140.0, 190.0
+    W, H = CONFIG["base_BP1"]["larghezza"], CONFIG["base_BP1"]["lunghezza"]
     p = Part("BP1", "Base d'appoggio", 1, "cartone ondulato rigido", W, LBL + H)
     top = LBL
     p.add(rect(0, top, W, H, S_CUT))
@@ -339,7 +408,7 @@ def base_plate():
 
 
 def exit_floor():
-    W, H = 60.0, 110.0
+    W, H = CONFIG["uscita_C"]["larghezza"], CONFIG["uscita_C"]["lunghezza"]
     p = Part("C1", "Piano uscita", 1, "cartone ondulato rigido", W, LBL + H)
     top = LBL
     cx = W / 2
@@ -349,7 +418,8 @@ def exit_floor():
         p.add(line(x, top, x, top + H, S_ALIGN))
     p.add(text(3, top - 0.8, "guida C2", 2.1, "start", T_RED))
     p.add(text(W - 3, top - 0.8, "guida C2", 2.1, "end", T_RED))
-    for hw in (15, 17, 19):
+    for cw in CONFIG["rampa"]["canale"]:
+        hw = int(cw / 2) if cw % 2 == 0 else cw / 2
         p.add(line(cx - hw, top + 6, cx - hw, top + H - 6, S_ALIGN))
         p.add(line(cx + hw, top + 6, cx + hw, top + H - 6, S_ALIGN))
     p.add(text(cx, top + H / 2, "canale 30/34/38", 2.3, "middle", T_RED))
@@ -360,30 +430,37 @@ def exit_floor():
 
 def build_parts():
     parts = []
+    im, a6, r = CONFIG["imbuto"], CONFIG["guida_paratia_A6"], CONFIG["rampa"]
     # Modulo A - imbuto
     parts.append(trapezoid_wall("A1", "Imbuto parete fronte/retro", 2, "cartone ondulato",
-                                T=140.0, B=60.0, slant=math.hypot(90.0, (140 - 60) / 2),
+                                T=im["bocca_lunga"], B=im["uscita"],
+                                slant=math.hypot(im["altezza"], (im["bocca_lunga"] - im["uscita"]) / 2),
                                 note="unire con nastro ai lati"))
     parts.append(trapezoid_wall("A3", "Imbuto parete laterale", 2, "cartone ondulato",
-                                T=110.0, B=60.0, slant=math.hypot(90.0, (110 - 60) / 2),
+                                T=im["bocca_corta"], B=im["uscita"],
+                                slant=math.hypot(im["altezza"], (im["bocca_corta"] - im["uscita"]) / 2),
                                 note="unire con nastro ai lati"))
     parts.append(gate_part())                                   # A5
-    parts.append(wall_rect("A6", "Guida paratia", 2, "cartone ondulato", 70.0, 14.0,
-                           tab=10.0, notes=[(2, 8, "crea l'asola per A5")]))
+    parts.append(wall_rect("A6", "Guida paratia", 2, "cartone ondulato", a6["lunghezza"], a6["altezza"],
+                           tab=a6["linguetta"], notes=[(2, 8, "crea l'asola per A5")]))
     # Modulo B - rampa
     parts.append(ramp_floor())                                  # B1
-    parts.append(wall_rect("B2", "Parete laterale rampa", 2, "cartone ondulato", 180.0, 45.0,
-                           tab=12.0, verso="verso valle ->"))
-    parts.append(wall_rect("B3", "Guida inferiore base", 2, "cartone ondulato", 180.0, 16.0,
-                           tab=10.0, verso="verso valle ->"))
+    parts.append(wall_rect("B2", "Parete laterale rampa", 2, "cartone ondulato",
+                           r["lunghezza"], r["parete_altezza"],
+                           tab=r["parete_linguetta"], verso="verso valle ->"))
+    parts.append(wall_rect("B3", "Guida inferiore base", 2, "cartone ondulato",
+                           r["lunghezza"], r["guida_base_altezza"],
+                           tab=r["guida_base_linguetta"], verso="verso valle ->"))
     parts.append(comb_part())                                   # B4
     parts.append(strip_part())                                  # B5
     parts.append(prop_part())                                   # B6
     parts.append(base_plate())                                  # BP1
     # Modulo C - uscita
     parts.append(exit_floor())                                  # C1
-    parts.append(wall_rect("C2", "Guida laterale uscita", 2, "cartone ondulato", 110.0, 22.0,
-                           tab=10.0, verso="uscita ->"))
+    u = CONFIG["uscita_C"]
+    parts.append(wall_rect("C2", "Guida laterale uscita", 2, "cartone ondulato",
+                           u["guida_lunghezza"], u["guida_altezza"],
+                           tab=u["guida_linguetta"], verso="uscita ->"))
     return parts
 
 
