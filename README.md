@@ -316,9 +316,11 @@ cd guida-gravitazionale-pezzi
 python3 genera_svg.py      # riscrive svg/foglio-*.svg e svg/guida-pezzi-tutto.svg
 ```
 
-Le misure sono costanti all'inizio di `genera_svg.py` e nei singoli builder di parte
-(`ramp_floor`, `comb_part`, `prop_part`, …). Per cambiare, ad esempio, la larghezza
-del canale o gli angoli delle gambe, modifica i valori lì e rigenera: lo script
+Le misure chiave sono tutte nel blocco **`CONFIG`** in cima a `genera_svg.py`
+(valori in mm, con commenti): imbuto, paratia, rampa, combi `B4`, striscia `B5`,
+gambe `B6`, base, uscita. I builder di parte (`ramp_floor`, `comb_part`,
+`prop_part`, …) leggono da lì. Per cambiare, ad esempio, la larghezza del canale
+o i gradini delle gambe, modifica `CONFIG` e rigenera: lo script
 rifà impaginazione, quote, indice e barra di scala, e **ri-verifica** ingombri e
 sovrapposizioni.
 
