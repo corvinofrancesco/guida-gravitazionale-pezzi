@@ -33,7 +33,9 @@ canale. Nessuna di queste quote va considerata **validata** senza una prova fisi
 ## Osservazioni sui dati
 
 - Il cavallo è spesso più alto del nominale FIDE: 6 set dichiarati su 8 superano il +10% (68–77 mm
-  contro 60; gli altri due sono 61 e 62). Il cavallo del set dell'utente (circa 57) è entro la tolleranza.
+  contro 60; gli altri due sono 61 e 62). Il cavallo del set dell'utente (circa 59) è entro la tolleranza.
 - Il pedone ha spesso un rapporto base/altezza del 53–65%, sopra il 40–50% che la norma indica
   come regola generale: la deviazione è comune e non indica un errore dei dati.
-- Torre del set dell'utente: lettura da foto non attendibile (47 mm, sotto il pedone). Da rifare.
+- Torre del set dell'utente: la prima foto ravvicinata dava 47 mm (non attendibile); con la foto a
+  inquadratura intera risulta circa 50 mm (±3), appena sopra il pedone (48,5): la differenza è
+  entro l'incertezza, quindi l'ordine FIDE torre > pedone non si può né confermare né escludere.

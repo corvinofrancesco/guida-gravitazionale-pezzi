@@ -43,10 +43,13 @@ baricentro_mm, stato, incertezza_mm, fonte, data, note`
 2. Incolla su cartoncino, taglia e piega come da istruzioni sul foglio.
 3. Scatta con il telefono fermo nel supporto, **inquadrando tutto il pezzo e i due pannelli**.
    Evita foto ravvicinate o a mano libera: la parallasse falsa le altezze (è il caso della
-   torre, lettura non attendibile).
+   prima foto della torre, poi rifatta).
 4. Leggi l'altezza sulla scala dei pannelli **all'altezza dell'immagine del dettaglio** e fai la
    media dei due lati. Le larghezze si ricavano dalla distanza di 80,0 mm tra i bordi interni dei
    pannelli. Incertezza tipica: circa ±2 mm sulle altezze, circa ±1,5 mm sulle larghezze.
+   Se la camera è più alta della base o si vede un solo pannello, confronta la lettura con la scala
+   dei cerchi sulla base (il cerchio esterno è ⌀50 mm): le due stime possono differire di 3 mm e
+   si registra l'incertezza maggiore (±3 mm).
 5. Per le **basi** (serve circa ±1 mm perché il canale ha scatti di 4 mm) è più preciso
    avvolgere una striscia di carta attorno alla base, misurarla e dividere per π.
 6. Per il **peso** usa una bilancia da cucina; per il **baricentro** appoggia il pezzo coricato
