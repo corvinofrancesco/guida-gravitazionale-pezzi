@@ -29,8 +29,8 @@ jobs:
         # se una parte esce dall'A4 o se due parti si sovrappongono.
         run: python3 genera_svg.py
 
-      - name: Installa il rasterizzatore SVG
-        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+      - name: Installa il rasterizzatore SVG e ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin imagemagick
 
       - name: Crea le anteprime PNG (per la revisione umana)
         run: |
@@ -38,6 +38,20 @@ jobs:
           for f in svg/foglio-*.svg; do
             rsvg-convert -d 120 -p 120 "$f" -o "anteprime/$(basename "${f%.svg}").png"
           done
+
+      - name: Crea il contact-sheet (miniature di tutti i fogli)
+        # Un'unica immagine a griglia con il numero di foglio sotto ogni miniatura
+        # (-label '%t' = nome file senza estensione, es. foglio-07). Resta solo artifact.
+        run: |
+          montage -label '%t' anteprime/foglio-*.png \
+            -tile 4x -geometry 420x+10+10 -pointsize 22 -background white \
+            contact-sheet.png
+
+      - name: Carica il contact-sheet
+        uses: actions/upload-artifact@v7
+        with:
+          name: contact-sheet
+          path: contact-sheet.png
 
       - name: Carica gli SVG generati
         uses: actions/upload-artifact@v7
