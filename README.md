@@ -149,6 +149,8 @@ Dettaglio sul **foglio 3** (sezione del canale + profilo laterale). Valori chiav
 | Guide uscita `C2` | h 22 |
 | **Luce minima guida curva ↔ corpo** | **≥ 2 mm** (il collo è ⌀12: non schiacciarlo) |
 
+> **Dati reali.** Queste quote sono confrontate con misure di set reali nella cartella [`dati/`](dati/README.md): vedi [ipotesi_guida.md](dati/ipotesi_guida.md) per cosa è supportato, da verificare o non confermato (ad esempio il collo del pedone misurato è più sottile di 12 mm).
+
 ---
 
 ## 5. Elenco delle parti

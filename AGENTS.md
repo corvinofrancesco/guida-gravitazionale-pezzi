@@ -21,7 +21,7 @@ Il deliverable sono **sagome di taglio in SVG, scala 1:1, su fogli A4**, prodott
 
 ## Architettura: il generatore è l'unica fonte di verità
 
-- **Si modifica solo [`genera_svg.py`](genera_svg.py)**. Le **misure si cambiano nel
+- **Per le sagome si modifica solo [`genera_svg.py`](genera_svg.py)**. Le **misure si cambiano nel
   blocco `CONFIG`** in cima al file (mm, con commenti): i *builder* di parte
   (`ramp_floor`, `comb_part`, `prop_part`, `trapezoid_wall`, …) leggono da lì. Le
   pagine `assembly_page` / `montaggio_*` / `quote_page` contengono disegni
@@ -30,6 +30,7 @@ Il deliverable sono **sagome di taglio in SVG, scala 1:1, su fogli A4**, prodott
   **Non editarli mai a mano.** Si rigenerano con un comando.
 - Nessuna dipendenza esterna: **solo libreria standard Python** (3.9+). Non aggiungere
   dipendenze senza motivo forte e senza dichiararlo nella PR.
+- **Eccezione: la cartella [`dati/`](dati/README.md)** contiene misure reali dei pezzi (CSV) e uno script di controllo. Non influisce sulle sagome e si modifica a parte. Ogni valore ha `stato` (`norma`/`dichiarato`/`stimato_foto`/`misurato`), `fonte` e `data`: non presentare come `misurato` ciò che è stimato. Dopo ogni modifica: `python3 dati/verifica_dati.py`.
 
 ## Come lavorare (ciclo minimo)
 
