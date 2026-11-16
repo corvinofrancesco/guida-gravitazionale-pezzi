@@ -31,6 +31,7 @@ Il deliverable sono **sagome di taglio in SVG, scala 1:1, su fogli A4**, prodott
 - Nessuna dipendenza esterna: **solo libreria standard Python** (3.9+). Non aggiungere
   dipendenze senza motivo forte e senza dichiararlo nella PR.
 - **Eccezione: la cartella [`dati/`](dati/README.md)** contiene misure reali dei pezzi (CSV) e uno script di controllo. Non influisce sulle sagome e si modifica a parte. Ogni valore ha `stato` (`norma`/`dichiarato`/`stimato_foto`/`misurato`), `fonte` e `data`: non presentare come `misurato` ciò che è stimato. Dopo ogni modifica: `python3 dati/verifica_dati.py`.
+- **Eccezione: la cartella [`costruzione/`](costruzione/README.md)** contiene materiali, utensili, procedure e protocollo di prova per costruire il prototipo. È documentazione e non cambia le sagome. Le indicazioni sul materiale sono ipotesi da provare, mai «validate»: i risultati delle prove vanno in `dati/prove_guida.csv`.
 
 ## Come lavorare (ciclo minimo)
 
